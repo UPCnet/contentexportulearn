@@ -13,7 +13,6 @@ from ulearn5.core.controlpanel import IUlearnControlPanelSettings
 from ulearn5.core.controlpopup import IPopupSettings
 from ulearn5.core.controlportlets import IPortletsSettings
 
-from plone.formwidget.recaptcha.interfaces import IReCaptchaSettings
 
 import base64
 import requests
@@ -45,9 +44,9 @@ class ExportControlpanels(BaseExport):
 
         portal = api.portal.get()
 
-        image_capcalera_url = portal.absolute_url() + '/portal_skins/custom/capcalera.jpg'
-        imgData = requests.get(image_capcalera_url).content
-        b64data_image_capcalera = str(base64.b64encode(imgData).decode('utf-8'))
+        # image_capcalera_url = portal.absolute_url() + '/portal_skins/custom/capcalera.jpg'
+        # imgData = requests.get(image_capcalera_url).content
+        # b64data_image_capcalera = str(base64.b64encode(imgData).decode('utf-8'))
         controlpanel = {}
 
         # Base settings-controlpanel
