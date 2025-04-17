@@ -7,6 +7,7 @@ from plone.restapi.serializer.converters import json_compatible
 
 logger = logging.getLogger(__name__)
 
+
 class ExportSettings(BaseExport):
     """Export various settings for haiku sites
     """
@@ -25,7 +26,7 @@ class ExportSettings(BaseExport):
         addons = []
         qi = api.portal.get_tool("portal_quickinstaller")
         for product in qi.listInstalledProducts():
-            if product["id"].startswith("genweb."):
+            if product["id"].startswith(("ulearn5.", "mrs5.", "base5.")):
                 addons.append(product["id"])
         results["addons"] = addons
 

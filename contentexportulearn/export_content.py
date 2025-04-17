@@ -49,49 +49,28 @@ TYPES_TO_EXPORT = [
     "Image",
     "Link",
     "News Item",
+    "Discussion Item",
     "Topic",
     "Collection",
     "EasyForm",
-    "Banner",
+    "ulearn.community",
+    "ulearn.banner",
+    "ulearn.video",
+    "ulearn.video_embed",
     "BannerContainer",
-    "genweb.upc.documentimage",
-    "genweb.upc.subhome",
+    "BannerItem",
     "LIF",
     "LRF",
     "Logos_Container",
     "Logos_Footer",
-    "packet",
-    "genweb.tfemarket.market",
-    "genweb.tfemarket.offer",
-    "genweb.tfemarket.application",
-    "Window",
-    "genweb.ens.acord",
-    "genweb.ens.acta_reunio",
-    "genweb.ens.carrec_upc",
-    "genweb.ens.carrec",
-    "genweb.ens.persona_directiu",
-    "genweb.ens.contenidor_ens",
-    "genweb.ens.contenidor_representants",
-    "genweb.ens.conveni",
-    "genweb.ens.document_interes",
-    "genweb.ens.escriptura_publica",
-    "genweb.ens.documentacio",
-    "genweb.ens.ens",
-    "genweb.ens.estatut",
-    "genweb.ens.organ",
-    "genweb.ens.persona_contacte",
-    "genweb.ens.representant",
-    "genweb.ens.unitat",
-    "Scholarship",
-    "serveitic",
-    "notificaciotic",
-    "documentrrhh",
-    "Noticia_actualidad",
-    "Flash_informativo",
-    "Docmigrat",
-    "Job_Posting",
     "privateFolder",
-    "AppFile"
+    "AppFile",
+    "AppImage",
+    "Interaccio",
+    "ulearn.abacus.location",
+    "ulearn.abacus.ubication",
+    "ulearn.abacus.area",
+    "ulearn.abacus.work_placement",
 ]
 
 PATH = ''
@@ -102,20 +81,23 @@ PATHS_TO_EXPORT = []
 MARKER_INTERFACES_TO_EXPORT = []
 
 ANNOTATIONS_TO_EXPORT = [
-    "genweb.portlets.span.genweb.portlets.HomePortletManager1",
-    "genweb.portlets.span.genweb.portlets.HomePortletManager2",
-    "genweb.portlets.span.genweb.portlets.HomePortletManager3",
-    "genweb.portlets.span.genweb.portlets.HomePortletManager4",
-    "genweb.portlets.span.genweb.portlets.HomePortletManager5",
-    "genweb.portlets.span.genweb.portlets.HomePortletManager6",
-    "genweb.portlets.span.genweb.portlets.HomePortletManager7",
-    "genweb.portlets.span.genweb.portlets.HomePortletManager8",
-    "genweb.portlets.span.genweb.portlets.HomePortletManager9",
-    "genweb.portlets.span.genweb.portlets.HomePortletManager10",
-    "genweb.core.important",
-    "genweb.packets.fields",
-    "genweb.packets.type",
-    "genweb.packets.mapui",
+    "portlets.col.ContentWellPortlets.AbovePortletManager1",
+    "portlets.col.ContentWellPortlets.AbovePortletManager2",
+    "portlets.col.ContentWellPortlets.AbovePortletManager3",
+    "portlets.col.ContentWellPortlets.BelowPortletManager1",
+    "portlets.col.ContentWellPortlets.BelowPortletManager2",
+    "portlets.col.ContentWellPortlets.BelowPortletManager3",
+    "portlets.col.ContentWellPortlets.BelowTitlePortletManager1",
+    "portlets.col.ContentWellPortlets.BelowTitlePortletManager2",
+    "portlets.col.ContentWellPortlets.BelowTitlePortletManager3",
+    "base5.core.flash",
+    "base5.core.important",
+    "base5.core.outoflist",
+    "base5.core.show_new_in_app",
+    "ulearn5.msteams",
+    "ulearn5.nomines",
+    "ulearn5.nominesmedichem",
+    "ulearn5.zoom",
 ]
 
 ANNOTATIONS_KEY = "exportimport.annotations"
@@ -129,10 +111,6 @@ class CustomExportContent(ExportContent):
     }
 
     DROP_PATHS = [
-        PATH + '/templates',
-        PATH + '/es/shared',
-        PATH + '/en/shared',
-        PATH + '/per_ubicar',
     ]
 
     DROP_UIDS = [
@@ -342,86 +320,6 @@ class CustomExportContent(ExportContent):
                 self.finish()
                 return response.write(safe_bytes(f.read()))
 
-        # Codigo antiguo BORRAR
-        # if download_to_server:
-        #     directory = config.CENTRAL_DIRECTORY
-        #     if directory:
-        #         if not os.path.exists(directory):
-        #             os.makedirs(directory)
-        #             logger.info("Created central export/import directory %s", directory)
-        #     else:
-        #         cfg = getConfiguration()
-        #         #directory = cfg.clienthome
-        #         portal = api.portal.get()
-        #         directory_import = cfg.clienthome + "/import"
-        #         directory = cfg.clienthome + "/import/" + portal.id
-        #         if directory:
-        #             if not os.path.exists(directory):
-        #                 os.makedirs(directory)
-        #                 logger.info("Created central export/import directory %s", directory)
-
-        #     filepath = os.path.join(directory, filename)
-        #     with open(filepath, "w") as f:
-        #         self.start()
-        #         for number, datum in enumerate(content_generator, start=1):
-        #             if number == 1:
-        #                 f.write("[")
-        #             else:
-        #                 f.write(",")
-        #             json.dump(datum, f, sort_keys=True, indent=4)
-        #         if number:
-        #             if self.errors and self.write_errors:
-        #                 f.write(",")
-        #                 errors = {"unexported_paths": self.errors}
-        #                 json.dump(errors, f, indent=4)
-        #             f.write("]")
-        #     msg = _(u"Exported {} items ({}) as {} to {}").format(
-        #         number, ", ".join(self.portal_type), filename, filepath
-        #     )
-        #     logger.info(msg)
-        #     api.portal.show_message(msg, self.request)
-
-        #     if self.include_blobs == 1:
-        #         # remove marker interface
-        #         noLongerProvides(self.request, IBase64BlobsMarker)
-        #     elif self.include_blobs == 2:
-        #         noLongerProvides(self.request, IPathBlobsMarker)
-        #     self.finish()
-        #     self.request.response.redirect(self.request["ACTUAL_URL"])
-        # else:
-        #     with tempfile.TemporaryFile(mode="w+") as f:
-        #         self.start()
-        #         for number, datum in enumerate(content_generator, start=1):
-        #             if number == 1:
-        #                 f.write("[")
-        #             else:
-        #                 f.write(",")
-        #             json.dump(datum, f, sort_keys=True, indent=4)
-        #         if number:
-        #             if  self.errors and self.write_errors:
-        #                 f.write(",")
-        #                 errors = {"unexported_paths": self.errors}
-        #                 json.dump(errors, f, indent=4)
-        #             f.write("]")
-        #         msg = _(u"Exported {} {}").format(number, self.portal_type)
-        #         logger.info(msg)
-        #         api.portal.show_message(msg, self.request)
-        #         response = self.request.response
-        #         response.setHeader("content-type", "application/json")
-        #         response.setHeader("content-length", f.tell())
-        #         response.setHeader(
-        #             "content-disposition",
-        #             'attachment; filename="{0}"'.format(filename),
-        #         )
-        #         if self.include_blobs == 1:
-        #             # remove marker interface
-        #             noLongerProvides(self.request, IBase64BlobsMarker)
-        #         elif self.include_blobs == 2:
-        #             noLongerProvides(self.request, IPathBlobsMarker)
-        #         f.seek(0)
-        #         self.finish()
-        #         return response.write(safe_bytes(f.read()))
-
     def update_query(self, query):
         return query
 
@@ -439,22 +337,23 @@ class CustomExportContent(ExportContent):
         """Used this to modify the serialized data.
         Return None if you want to skip this particular object.
         """
-        if obj.portal_type in [
-            "genweb.tfemarket.market", "genweb.tfemarket.offer",
-                "genweb.tfemarket.application"]:
-            item.update({u'creators': [it for it in obj.creators]})
-            item.update({u'contributors': [it for it in obj.contributors]})
-            item.update({u'expires': obj.expires().strftime(
-                '%Y-%m-%dT%H:%M:%S+00:00' if obj.expires else None)})
-            item.update({u'exclude_from_nav': obj.exclude_from_nav})
+        # if obj.portal_type in [
+        #     "genweb.tfemarket.market", "genweb.tfemarket.offer",
+        #         "genweb.tfemarket.application"]:
+        #     item.update({u'creators': [it for it in obj.creators]})
+        #     item.update({u'contributors': [it for it in obj.contributors]})
+        #     item.update({u'expires': obj.expires().strftime(
+        #         '%Y-%m-%dT%H:%M:%S+00:00' if obj.expires else None)})
+        #     item.update({u'exclude_from_nav': obj.exclude_from_nav})
 
-        if obj.portal_type == "genweb.tfemarket.offer":
-            if item['offer_type'] == 'Projecte':
-                item['offer_type'] = u'Project'
+        if obj.portal_type == "ulearn.community":
+            pass
+        #     if item['offer_type'] == 'Projecte':
+        #         item['offer_type'] = u'Project'
 
-        if obj.portal_type == "genweb.ens.ens":
-            if item['institution_type'] == None:
-                item['institution_type'] = '-'
+        # if obj.portal_type == "genweb.ens.ens":
+        #     if item['institution_type'] == None:
+        #         item['institution_type'] = '-'
 
         item = self.export_annotations(item, obj)
         return item
@@ -472,34 +371,3 @@ class CustomExportContent(ExportContent):
         if results:
             item[ANNOTATIONS_KEY] = results
         return item
-
-    # def export_revisions(self, item, obj):
-    #     if not self.include_revisions:
-    #         return item
-    #     try:
-    #         repo_tool = api.portal.get_tool("portal_repository")
-    #         history_metadata = repo_tool.getHistoryMetadata(obj)
-    #         serializer = getMultiAdapter((obj, self.request), ISerializeToJson)
-    #         content_history_viewlet = ContentHistoryViewlet(obj, self.request, None, None)
-    #         content_history_viewlet.navigation_root_url = ""
-    #         content_history_viewlet.site_url = ""
-    #         full_history = content_history_viewlet.fullHistory() or []
-    #         history = [i for i in full_history if i["type"] == "versioning"]
-    #         if not history or len(history) == 1:
-    #             return item
-    #         item["exportimport.versions"] = {}
-    #         # don't export the current version again
-    #         for history_item in history[1:]:
-    #             version_id = history_item["version_id"]
-    #             item_version = serializer(include_items=False, version=version_id)
-    #             item_version = self.update_data_for_migration(item_version, obj)
-    #             item["exportimport.versions"][version_id] = item_version
-    #             # inject metadata (missing for Archetypes content):
-    #             comment = history_metadata.retrieve(version_id)["metadata"]["sys_metadata"]["comment"]
-    #             if comment and comment != item["exportimport.versions"][version_id].get("changeNote"):
-    #                 item["exportimport.versions"][version_id]["changeNote"] = comment
-    #         # current changenote
-    #         item["changeNote"] = history_metadata.retrieve(-1)["metadata"]["sys_metadata"]["comment"]
-    #         return item
-    #     except:
-    #         return item

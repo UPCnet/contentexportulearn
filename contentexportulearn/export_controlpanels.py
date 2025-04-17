@@ -7,7 +7,11 @@ from plone.restapi.serializer.converters import json_compatible
 from zope.component import getUtility
 from plone.registry.interfaces import IRegistry
 
-from genweb.controlpanel.interface import IGenwebControlPanelSettings
+from base5.core.controlpanel.core import IBaseCoreControlPanelSettings
+from mrs5.max.browser.controlpanel import IMAXUISettings
+from ulearn5.core.controlpanel import IUlearnControlPanelSettings
+from ulearn5.core.controlpanelpopup import IPopupSettings
+from ulearn5.core.controlportlets import IPortletsSettings
 
 from plone.formwidget.recaptcha.interfaces import IReCaptchaSettings
 
@@ -35,7 +39,7 @@ class ExportControlpanels(BaseExport):
         addons = []
         qi = api.portal.get_tool("portal_quickinstaller")
         for product in qi.listInstalledProducts():
-            if product["id"].startswith("genweb."):
+            if product["id"].startswith(("ulearn5.", "mrs5.", "base5.")):
                 addons.append(product["id"])
         results["addons"] = addons
 
@@ -46,31 +50,119 @@ class ExportControlpanels(BaseExport):
         b64data_image_capcalera = str(base64.b64encode(imgData).decode('utf-8'))
         controlpanel = {}
 
-        # genweb-controlpanel
-        gwsettings = getUtility(IRegistry).forInterface(IGenwebControlPanelSettings)
-        controlpanel["genweb6.core.controlpanels.footer.IFooterSettings"] = dict(
-            signatura_ca=gwsettings.signatura_unitat_ca,
-            signatura_es=gwsettings.signatura_unitat_es,
-            signatura_en=gwsettings.signatura_unitat_en)
-        controlpanel["genweb6.core.controlpanels.header.IHeaderSettings"] = dict(
-            main_hero_style='text-hero'
-            if gwsettings.treu_imatge_capsalera else 'image-hero',
-            content_hero_style='text-hero'
-            if gwsettings.treu_imatge_capsalera else 'image-hero',
-            html_title_ca=gwsettings.html_title_ca,
-            html_title_es=gwsettings.html_title_es,
-            html_title_en=gwsettings.html_title_en, hero_image=b64data_image_capcalera,
-            treu_menu_horitzontal=gwsettings.treu_menu_horitzontal,
-            amaga_identificacio=gwsettings.amaga_identificacio,
-            idiomes_publicats=gwsettings.idiomes_publicats,
-            languages_link_to_root=gwsettings.languages_link_to_root)
-        controlpanel["genweb6.upc.controlpanels.upc.IUPCSettings"] = dict(
-            contacte_al_peu=gwsettings.contacte_al_peu,
-            contacte_id=gwsettings.contacte_id,
-            contacte_BBDD_or_page=gwsettings.contacte_BBDD_or_page,
-            contacte_multi_email=gwsettings.contacte_multi_email,
-            contact_emails_table=gwsettings.contact_emails_table)
-        # @@mail-controlpanel
+        # Base settings-controlpanel
+        base_settings = getUtility(IRegistry).forInterface(
+            IBaseCoreControlPanelSettings)
+        controlpanel["base5.core.controlpanel.IBaseCoreControlPanelSettings"] = dict(
+            user_properties_extender=base_settings.user_properties_extender,
+            custom_editor_icons=base_settings.custom_editor_icons,
+            elasticsearch=base_settings.elasticsearch,
+            alt_ldap_uri=base_settings.alt_ldap_uri,
+            alt_bind_dn=base_settings.alt_bind_dn,
+            alt_bindpasswd=base_settings.alt_bindpasswd,
+            alt_base_dn=base_settings.alt_base_dn,
+            groups_query=base_settings.groups_query,
+            user_groups_query=base_settings.user_groups_query,
+            create_group_type=base_settings.create_group_type)
+        # MAX UI settings-controlpanel
+        maxui_settings = getUtility(IRegistry).forInterface(IMAXUISettings)
+        controlpanel["mrs5.max.controlpanel.IMAXUISettings"] = dict(
+            max_server=maxui_settings.max_server,
+            oauth_server=maxui_settings.oauth_server,
+            max_server_alias=maxui_settings.max_server_alias,
+            max_restricted_username=maxui_settings.max_restricted_username,
+            max_restricted_token=maxui_settings.max_restricted_token,
+            hub_server=maxui_settings.hub_server,
+            domain=maxui_settings.domain)
+        # Ulearn settings-controlpanel
+        ulearn_settings = getUtility(IRegistry).forInterface(
+            IUlearnControlPanelSettings)
+        controlpanel["ulearn5.core.controlpanel.IUlearnControlPanelSettings"] = dict(
+            html_title_ca=ulearn_settings.html_title_ca,
+            html_title_es=ulearn_settings.html_title_es,
+            html_title_en=ulearn_settings.html_title_en,
+            campus_url=ulearn_settings.campus_url,
+            library_url=ulearn_settings.library_url,
+            threshold_winwin1=ulearn_settings.threshold_winwin1,
+            threshold_winwin2=ulearn_settings.threshold_winwin2,
+            threshold_winwin2=ulearn_settings.threshold_winwin2,
+            stats_button=ulearn_settings.stats_button,
+            info_servei=ulearn_settings.info_servei,
+            activate_news=ulearn_settings.activate_news,
+            activate_sharedwithme=ulearn_settings.activate_sharedwithme,
+            buttonbar_selected=ulearn_settings.buttonbar_selected,
+            cron_tasks=ulearn_settings.cron_tasks,
+            url_private_policy=ulearn_settings.url_private_policy,
+            url_site=ulearn_settings.url_site,
+            main_color=ulearn_settings.main_color,
+            secondary_color=ulearn_settings.secondary_color,
+            maxui_form_bg=ulearn_settings.maxui_form_bg,
+            alt_gradient_start_color=ulearn_settings.alt_gradient_start_color,
+            alt_gradient_end_color=ulearn_settings.alt_gradient_end_color,
+            background_property=ulearn_settings.background_property,
+            background_color=ulearn_settings.background_color,
+            buttons_color_primary=ulearn_settings.buttons_color_primary,
+            buttons_color_secondary=ulearn_settings.buttons_color_secondary,
+            color_community_organizative=ulearn_settings.color_community_organizative,
+            color_community_open=ulearn_settings.color_community_open,
+            color_community_closed=ulearn_settings.color_community_closed,
+            nonvisibles=ulearn_settings.nonvisibles,
+            people_literal=ulearn_settings.people_literal,
+            quicklinks_literal=ulearn_settings.quicklinks_literal,
+            quicklinks_icon=ulearn_settings.quicklinks_icon,
+            quicklinks_table=ulearn_settings.quicklinks_table,
+            activity_view=ulearn_settings.activity_view,
+            language=ulearn_settings.language,
+            url_forget_password=ulearn_settings.url_forget_password,
+            show_news_in_app=ulearn_settings.show_news_in_app,
+            show_literals=ulearn_settings.show_literals,
+            url_terms=ulearn_settings.url_terms,
+            subject_template=ulearn_settings.subject_template,
+            message_template=ulearn_settings.message_template,
+            message_template_activity_comment=ulearn_settings.message_template_activity_comment,
+            types_notify_mail=ulearn_settings.types_notify_mail,
+            gAnalytics_enabled=ulearn_settings.gAnalytics_enabled,
+            gAnalytics_view_ID=ulearn_settings.gAnalytics_view_ID,
+            gAnalytics_JSON_info=ulearn_settings.gAnalytics_JSON_info,
+            bitly_username=ulearn_settings.bitly_username,
+            bitly_apikey=ulearn_settings.bitly_apikey)
+        # Popup-controlpanel
+        popup_settings = getUtility(IRegistry).forInterface(IPopupSettings)
+        controlpanel["ulearn5.core.controlpanelpopup.IPopupSettings"] = dict(
+            activate_notify=popup_settings.activate_notify,
+            message_notify=popup_settings.message_notify,
+            reload_notify=popup_settings.reload_notify,
+            warning_birthday=popup_settings.warning_birthday,
+            activate_birthday=popup_settings.activate_birthday,
+            message_birthday=popup_settings.message_birthday)
+        # Portlets-controlpanel
+        portlets_settings = getUtility(IRegistry).forInterface(IPortletsSettings)
+        controlpanel["ulearn5.core.controlportlets.IPortletsSettings"] = dict(
+            portlets_Search=portlets_settings.portlets_Search,
+            portlets_Review=portlets_settings.portlets_Review,
+            portlets_Navigation=portlets_settings.portlets_Navigation,
+            collective_polls_VotePortlet=portlets_settings.collective_polls_VotePortlet,
+            plone_portlet_static_Static=portlets_settings.plone_portlet_static_Static,
+            mrs5_max_maxui=portlets_settings.mrs5_max_maxui,
+            mrs5_max_maxuichat=portlets_settings.mrs5_max_maxuichat,
+            base_portlets_smart=portlets_settings.base_portlets_smart,
+            ulearn_portlets_angularrouteview=portlets_settings.ulearn_portlets_angularrouteview,
+            ulearn_portlets_buttonbar=portlets_settings.ulearn_portlets_buttonbar,
+            ulearn_portlets_communities=portlets_settings.ulearn_portlets_communities,
+            ulearn_portlets_profile=portlets_settings.ulearn_portlets_profile,
+            ulearn_portlets_profilecommunity=portlets_settings.ulearn_portlets_profilecommunity,
+            ulearn_portlets_thinnkers=portlets_settings.ulearn_portlets_thinnkers,
+            ulearn_portlets_calendar=portlets_settings.ulearn_portlets_calendar,
+            ulearn_portlets_mysubjects=portlets_settings.ulearn_portlets_mysubjects,
+            ulearn_portlets_flashesinformativos=portlets_settings.ulearn_portlets_flashesinformativos,
+            ulearn_portlets_importantnews=portlets_settings.ulearn_portlets_importantnews,
+            ulearn_portlets_rss=portlets_settings.ulearn_portlets_rss,
+            ulearn_portlets_discussion=portlets_settings.ulearn_portlets_discussion,
+            ulearn_portlets_stats=portlets_settings.ulearn_portlets_stats,
+            ulearn_portlets_recentchanges=portlets_settings.ulearn_portlets_recentchanges,
+            ulearn_portlets_banners=portlets_settings.ulearn_portlets_banners,
+            ulearn_portlets_quicklinks=portlets_settings.ulearn_portlets_quicklinks,
+            ulearn_portlets_mycommunities=portlets_settings.ulearn_portlets_mycommunities)
         controlpanel["plone.app.controlpanel.mail.IMailSchema"] = dict(
             smtp_host=getattr(portal.MailHost, 'smtp_host', ''),
             smtp_port=int(getattr(portal.MailHost, 'smtp_port', 25)),
@@ -87,67 +179,6 @@ class ExportControlpanels(BaseExport):
             display_pub_date_in_byline=site_props.displayPublicationDateInByline,
             enable_sitemap=site_props.enable_sitemap, webstats_js=site_props.
             webstats_js)
-        # @@recaptcha-settings
-        recaptchasettings = getUtility(IRegistry).forInterface(IReCaptchaSettings)
-        controlpanel["plone.formwidget.recaptcha.interfaces.IReCaptchaSettings"] = dict(
-            center_code=recaptchasettings.public_key,
-            private_key=recaptchasettings.private_key,
-            display_theme=recaptchasettings.display_theme,
-            display_type=recaptchasettings.display_type,
-            display_size=recaptchasettings.display_size)
-        # @@language-controlpanel
-        default_language = api.portal.get_default_language()
-        controlpanel["plone.app.multilingual"] = dict(default_language=default_language)
-
-        if "genweb.tfemarket" in results["addons"]:
-            from genweb.tfemarket.controlpanel import ITableTitulacions, ITfemarketSettings, IBUSSOASettings, IIdentitatDigitalSettings
-
-            tfesettings = getUtility(IRegistry).forInterface(ITfemarketSettings)
-            controlpanel["genweb6.tfemarket.controlpanels.tfemarket.ITfemarketSettings"] = dict(center_code=tfesettings.center_code,
-                                                                                                center_name=tfesettings.center_name,
-                                                                                                review_state=tfesettings.review_state,
-                                                                                                enroll_type=tfesettings.enroll_type,
-                                                                                                alternative_email=tfesettings.alternative_email,
-                                                                                                alternative_email_name=tfesettings.alternative_email_name,
-                                                                                                topics=tfesettings.topics,
-                                                                                                tags=tfesettings.tags,
-                                                                                                languages=tfesettings.languages,
-                                                                                                titulacions_table=tfesettings.titulacions_table,
-                                                                                                life_period=tfesettings.life_period,
-                                                                                                view_num_students=tfesettings.view_num_students,
-                                                                                                import_offers=tfesettings.import_offers,
-                                                                                                count_offers=tfesettings.count_offers)
-            bussoasettings = getUtility(IRegistry).forInterface(IBUSSOASettings)
-            controlpanel["genweb6.upc.controlpanels.bus_soa.IBusSOASettings"] = dict(
-                bus_url=bussoasettings.bus_url, bus_user=bussoasettings.bus_user,
-                bus_password=bussoasettings.bus_password,
-                bus_apikey=bussoasettings.bus_apikey)
-
-            identitatdigitalsettings = getUtility(
-                IRegistry).forInterface(IIdentitatDigitalSettings)
-            controlpanel["genweb6.upc.controlpanels.identitat_digital.IIdentitatDigitalSettings"] = dict(
-                identitat_url=identitatdigitalsettings.identitat_url, identitat_apikey=identitatdigitalsettings.identitat_apikey)
-
-        if "genweb.serveistic" in results["addons"]:
-            from genweb.serveistic.controlpanel import IServeisTICFacetesControlPanelSettings, IServeisTICControlPanelSettings
-
-            serveisticsettings = getUtility(IRegistry).forInterface(
-                IServeisTICControlPanelSettings)
-            controlpanel["genweb6.serveistic.controlpanels.serveistic.IServeisTICControlPanelSettings"] = dict(url_info_serveistic=serveisticsettings.url_info_serveistic,
-                                                                                                               show_filters=serveisticsettings.show_filters,
-                                                                                                               ws_problemes_endpoint=serveisticsettings.ws_problemes_endpoint,
-                                                                                                               ws_problemes_login_username=serveisticsettings.ws_problemes_login_username,
-                                                                                                               ws_problemes_login_password=serveisticsettings.ws_problemes_login_password,
-                                                                                                               ws_indicadors_service_id=serveisticsettings.ws_indicadors_service_id,
-                                                                                                               ws_indicadors_endpoint=serveisticsettings.ws_indicadors_endpoint,
-                                                                                                               ws_indicadors_key=serveisticsettings.ws_indicadors_key,
-                                                                                                               update_indicadors_passphrase=serveisticsettings.update_indicadors_passphrase,
-                                                                                                               ga_key_json=serveisticsettings.ga_key_json,
-                                                                                                               ga_view_id=serveisticsettings.ga_view_id)
-            facetessettings = getUtility(IRegistry).forInterface(
-                IServeisTICFacetesControlPanelSettings)
-            controlpanel["genweb6.serveistic.controlpanels.facetes.IServeisTICFacetesControlPanelSettings"] = dict(
-                facetes_table=facetessettings.facetes_table)
 
         results["controlpanel"] = json_compatible(controlpanel)
         return results
