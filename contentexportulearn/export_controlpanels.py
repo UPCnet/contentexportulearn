@@ -124,7 +124,7 @@ class ExportControlpanels(BaseExport):
             gAnalytics_view_ID=ulearn_settings.gAnalytics_view_ID,
             gAnalytics_JSON_info=ulearn_settings.gAnalytics_JSON_info,
             bitly_username=ulearn_settings.bitly_username,
-            bitly_apikey=ulearn_settings.bitly_apikey)
+            bitly_api_key=ulearn_settings.bitly_api_key)
         # Popup-controlpanel
         popup_settings = getUtility(IRegistry).forInterface(IPopupSettings)
         controlpanel["ulearn5.core.controlpopup.IPopupSettings"] = dict(
