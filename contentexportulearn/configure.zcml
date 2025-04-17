@@ -17,7 +17,7 @@
       name="export_content"
       for="zope.interface.Interface"
       class=".export_content.CustomExportContent"
-      layer="contentexport.interfaces.IContentexportLayer"
+      layer="contentexportulearn.interfaces.IContentexportLayer"
       permission="cmf.ManagePortal"
       />
 
@@ -25,15 +25,15 @@
       name="export_settings"
       for="zope.interface.Interface"
       class=".export_settings.ExportSettings"
-      layer="contentexport.interfaces.IContentexportLayer"
+      layer="contentexportulearn.interfaces.IContentexportLayer"
       permission="cmf.ManagePortal"
       />
- 
+
   <browser:page
       name="export_controlpanels"
       for="zope.interface.Interface"
       class=".export_controlpanels.ExportControlpanels"
-      layer="contentexport.interfaces.IContentexportLayer"
+      layer="contentexportulearn.interfaces.IContentexportLayer"
       permission="cmf.ManagePortal"
       />
 
@@ -41,7 +41,7 @@
       name="export_portalrolemanager"
       for="zope.interface.Interface"
       class=".export_portalrolemanager.ExportPortalRoleManager"
-      layer="contentexport.interfaces.IContentexportLayer"
+      layer="contentexportulearn.interfaces.IContentexportLayer"
       permission="cmf.ManagePortal"
       />
 
