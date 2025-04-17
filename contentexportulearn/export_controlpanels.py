@@ -85,7 +85,7 @@ class ExportControlpanels(BaseExport):
             library_url=ulearn_settings.library_url,
             threshold_winwin1=ulearn_settings.threshold_winwin1,
             threshold_winwin2=ulearn_settings.threshold_winwin2,
-            threshold_winwin2=ulearn_settings.threshold_winwin2,
+            threshold_winwin3=ulearn_settings.threshold_winwin3,
             stats_button=ulearn_settings.stats_button,
             info_servei=ulearn_settings.info_servei,
             activate_news=ulearn_settings.activate_news,
