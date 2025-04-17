@@ -10,7 +10,7 @@ from plone.registry.interfaces import IRegistry
 from base5.core.controlpanel.core import IBaseCoreControlPanelSettings
 from mrs5.max.browser.controlpanel import IMAXUISettings
 from ulearn5.core.controlpanel import IUlearnControlPanelSettings
-from ulearn5.core.controlpanelpopup import IPopupSettings
+from ulearn5.core.controlpopup import IPopupSettings
 from ulearn5.core.controlportlets import IPortletsSettings
 
 from plone.formwidget.recaptcha.interfaces import IReCaptchaSettings
@@ -128,7 +128,7 @@ class ExportControlpanels(BaseExport):
             bitly_apikey=ulearn_settings.bitly_apikey)
         # Popup-controlpanel
         popup_settings = getUtility(IRegistry).forInterface(IPopupSettings)
-        controlpanel["ulearn5.core.controlpanelpopup.IPopupSettings"] = dict(
+        controlpanel["ulearn5.core.controlpopup.IPopupSettings"] = dict(
             activate_notify=popup_settings.activate_notify,
             message_notify=popup_settings.message_notify,
             reload_notify=popup_settings.reload_notify,
