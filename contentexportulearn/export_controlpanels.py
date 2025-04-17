@@ -12,6 +12,7 @@ from mrs5.max.browser.controlpanel import IMAXUISettings
 from ulearn5.core.controlpanel import IUlearnControlPanelSettings
 from ulearn5.core.controlpopup import IPopupSettings
 from ulearn5.core.controlportlets import IPortletsSettings
+from Products.CMFPlone.interfaces import ISiteSchema
 
 
 import base64
@@ -170,14 +171,11 @@ class ExportControlpanels(BaseExport):
             email_from_name=portal.getProperty('email_from_name', ''),
             email_from_address=portal.getProperty('email_from_address', ''),)
         # @@site-controlpanel
-        portal_properties = api.portal.get_tool("portal_properties")
-        site_props = portal_properties.site_properties
+        registry = getUtility(IRegistry)
+        site_settings = registry.forInterface(ISiteSchema, prefix="plone", check=False)
         controlpanel["plone.app.controlpanel.site.ISiteSchema"] = dict(
             site_title=portal.title, site_description=portal.description,
-            exposeDCMetaTags=site_props.exposeDCMetaTags,
-            display_pub_date_in_byline=site_props.displayPublicationDateInByline,
-            enable_sitemap=site_props.enable_sitemap, webstats_js=site_props.
-            webstats_js)
+            webstats_js=site_settings.webstats_js)
 
         results["controlpanel"] = json_compatible(controlpanel)
         return results
