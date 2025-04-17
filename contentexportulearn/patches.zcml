@@ -1,0 +1,15 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:monkey="http://namespaces.plone.org/monkey"
+    i18n_domain="genweb">
+
+    <include package="collective.monkeypatcher" />
+
+    <monkey:patch
+        description="Upload json to folder domain"
+        class="collective.exportimport.export_other.BaseExport"
+        original="download"
+        replacement=".patches.download"
+        />
+
+</configure>
