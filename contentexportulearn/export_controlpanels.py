@@ -93,7 +93,6 @@ class ExportControlpanels(BaseExport):
             buttonbar_selected=ulearn_settings.buttonbar_selected,
             cron_tasks=ulearn_settings.cron_tasks,
             url_private_policy=ulearn_settings.url_private_policy,
-            url_site=ulearn_settings.url_site,
             main_color=ulearn_settings.main_color,
             secondary_color=ulearn_settings.secondary_color,
             maxui_form_bg=ulearn_settings.maxui_form_bg,
