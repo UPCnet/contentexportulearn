@@ -71,6 +71,7 @@ TYPES_TO_EXPORT = [
     "ulearn.abacus.ubication",
     "ulearn.abacus.area",
     "ulearn.abacus.work_placement",
+    "ulearn.affiliate",
 ]
 
 PATH = ''
