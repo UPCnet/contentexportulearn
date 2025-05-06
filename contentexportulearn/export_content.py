@@ -49,7 +49,6 @@ TYPES_TO_EXPORT = [
     "Image",
     "Link",
     "News Item",
-    "Discussion Item",
     "Topic",
     "Collection",
     "EasyForm",
@@ -348,14 +347,21 @@ class CustomExportContent(ExportContent):
 
     def export_annotations(self, item, obj):
         results = {}
-        annotations = IAnnotations(obj)
-        for key in ANNOTATIONS_TO_EXPORT:
-            data = annotations.get(key)
-            if data:
-                # Lo comento lo del IJsonCompatible porque sino
-                # i18n_message_converter plone.restapi.serializer.converter.py lo traduce y no funciona
-                # results[key] = IJsonCompatible(data, None)
-                results[key] = data
-        if results:
-            item[ANNOTATIONS_KEY] = results
+        try:
+           annotations = IAnnotations(obj)
+        except TypeError:
+           annotations = None
+
+        if annotations:
+
+           for key in ANNOTATIONS_TO_EXPORT:
+               data = annotations.get(key)
+               if data:
+                   # Lo comento lo del IJsonCompatible porque sino
+                   # i18n_message_converter plone.restapi.serializer.converter.py lo traduce y no funciona
+                   # results[key] = IJsonCompatible(data, None)
+                   results[key] = data
+           if results:
+               item[ANNOTATIONS_KEY] = results
+
         return item
