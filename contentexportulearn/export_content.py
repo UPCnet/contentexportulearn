@@ -341,6 +341,8 @@ class CustomExportContent(ExportContent):
             adapter = obj.adapted()
             acl = adapter.get_acl()
             item.update({'acl': acl})
+            creators = obj.creators
+            item.update({'creators': creators})
 
         item = self.export_annotations(item, obj)
         return item
