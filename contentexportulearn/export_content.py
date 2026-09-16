@@ -58,33 +58,57 @@ COLLECTION_METADATA_FIELDS = (
 )
 
 
-class _ExportDateProxy(object):
-    """Read-only export wrapper for migration4to5 date artifacts.
+# CMF methods shadowed as plain values by migration4to5 on communities.
+MIGRATION_SHADOWED_METHODS = ("created", "modified", "UID", "Creator")
 
-    ProxyBase is not usable here: it forwards the broken ``created`` string
-    before our method can run.
+
+def _shadowed_instance_value(obj, name):
+    value = obj.__dict__.get(name)
+    if value is not None and not callable(value):
+        return value
+    return None
+
+
+class _ExportMigrationProxy(object):
+    """Read-only export wrapper for migration4to5 artifacts on communities.
+
+    migration4to5 sets created/UID/Creator as instance attributes, shadowing
+    CMF methods. A transparent proxy cannot fix that; methods must be defined
+    explicitly on this class.
     """
 
     def __init__(self, obj):
         self._obj = obj
 
     def created(self):
-        created = self._obj.__dict__.get("created")
-        if created is not None and not callable(created):
-            return DateTime(created)
+        shadowed = _shadowed_instance_value(self._obj, "created")
+        if shadowed is not None:
+            return DateTime(shadowed)
         creation_date = getattr(self._obj, "CreationDate", None)
         if creation_date:
             return DateTime(creation_date)
         return self._obj.created()
 
     def modified(self):
-        modified = self._obj.__dict__.get("modified")
-        if modified is not None and not callable(modified):
-            return DateTime(modified)
+        shadowed = _shadowed_instance_value(self._obj, "modified")
+        if shadowed is not None:
+            return DateTime(shadowed)
         modification_date = getattr(self._obj, "ModificationDate", None)
         if modification_date:
             return DateTime(modification_date)
         return self._obj.modified()
+
+    def UID(self):
+        shadowed = _shadowed_instance_value(self._obj, "UID")
+        if shadowed is not None:
+            return shadowed
+        return self._obj.UID()
+
+    def Creator(self):
+        shadowed = _shadowed_instance_value(self._obj, "Creator")
+        if shadowed is not None:
+            return shadowed
+        return self._obj.Creator()
 
     def __providedBy__(self):
         return providedBy(self._obj)
@@ -93,11 +117,13 @@ class _ExportDateProxy(object):
         return getattr(self._obj, name)
 
 
-def _needs_created_fixup(obj):
+def _needs_migration_fixup(obj):
     if obj.portal_type != "ulearn.community":
         return False
-    created = getattr(obj, "created", None)
-    return created is not None and not callable(created)
+    for name in MIGRATION_SHADOWED_METHODS:
+        if _shadowed_instance_value(obj, name) is not None:
+            return True
+    return False
 
 
 def _serialize_legacy_collection(obj, request):
@@ -405,8 +431,8 @@ class CustomExportContent(ExportContent):
         return obj
 
     def serialize_object(self, obj):
-        if _needs_created_fixup(obj):
-            proxy = _ExportDateProxy(obj)
+        if _needs_migration_fixup(obj):
+            proxy = _ExportMigrationProxy(obj)
             return SerializeFolderToJson(proxy, self.request)(
                 include_items=False
             )
