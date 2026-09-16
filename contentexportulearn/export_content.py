@@ -21,8 +21,6 @@ from plone.restapi.serializer.converters import json_compatible
 from plone.restapi.serializer.dxcontent import SerializeFolderToJson
 from plone.restapi.serializer.dxcontent import SerializeToJson
 from plone.uuid.interfaces import IUUID
-from DateTime.DateTime import DateTime
-from zope.interface import providedBy
 from Products.CMFPlone.interfaces import IPloneSiteRoot
 from Products.CMFPlone.interfaces.constrains import ENABLED
 from Products.CMFPlone.interfaces.constrains import ISelectableConstrainTypes
@@ -42,6 +40,7 @@ import os
 import pkg_resources
 import six
 import tempfile
+import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -69,52 +68,20 @@ def _shadowed_instance_value(obj, name):
     return None
 
 
-class _ExportMigrationProxy(object):
-    """Read-only export wrapper for migration4to5 artifacts on communities.
+def _clear_shadowed_cmf_methods(obj):
+    for name in MIGRATION_SHADOWED_METHODS:
+        if _shadowed_instance_value(obj, name) is not None:
+            del obj.__dict__[name]
 
-    migration4to5 sets created/UID/Creator as instance attributes, shadowing
-    CMF methods. A transparent proxy cannot fix that; methods must be defined
-    explicitly on this class.
-    """
 
-    def __init__(self, obj):
-        self._obj = obj
-
-    def created(self):
-        shadowed = _shadowed_instance_value(self._obj, "created")
-        if shadowed is not None:
-            return DateTime(shadowed)
-        creation_date = getattr(self._obj, "CreationDate", None)
-        if creation_date:
-            return DateTime(creation_date)
-        return self._obj.created()
-
-    def modified(self):
-        shadowed = _shadowed_instance_value(self._obj, "modified")
-        if shadowed is not None:
-            return DateTime(shadowed)
-        modification_date = getattr(self._obj, "ModificationDate", None)
-        if modification_date:
-            return DateTime(modification_date)
-        return self._obj.modified()
-
-    def UID(self):
-        shadowed = _shadowed_instance_value(self._obj, "UID")
-        if shadowed is not None:
-            return shadowed
-        return self._obj.UID()
-
-    def Creator(self):
-        shadowed = _shadowed_instance_value(self._obj, "Creator")
-        if shadowed is not None:
-            return shadowed
-        return self._obj.Creator()
-
-    def __providedBy__(self):
-        return providedBy(self._obj)
-
-    def __getattr__(self, name):
-        return getattr(self._obj, name)
+def _serialize_migrated_community(obj, request):
+    """Serialize P4-migrated communities; rollback so mariona stays unchanged."""
+    savepoint = transaction.savepoint()
+    try:
+        _clear_shadowed_cmf_methods(obj)
+        return SerializeFolderToJson(obj, request)(include_items=False)
+    finally:
+        savepoint.rollback()
 
 
 def _needs_migration_fixup(obj):
@@ -432,10 +399,7 @@ class CustomExportContent(ExportContent):
 
     def serialize_object(self, obj):
         if _needs_migration_fixup(obj):
-            proxy = _ExportMigrationProxy(obj)
-            return SerializeFolderToJson(proxy, self.request)(
-                include_items=False
-            )
+            return _serialize_migrated_community(obj, self.request)
 
         serializer = getMultiAdapter((obj, self.request), ISerializeToJson)
         if IPloneSiteRoot.providedBy(obj):
