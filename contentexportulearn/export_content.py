@@ -1,8 +1,10 @@
 # -*- coding: UTF-8 -*-
-from collective.exportimport.export_content import safe_bytes
+from Acquisition import aq_base
 from collective.exportimport.export_content import ExportContent
+from collective.exportimport.export_content import fix_portal_type
+from collective.exportimport.export_content import safe_bytes
+from collective.exportimport.interfaces import IRawRichTextMarker
 from zope.annotation.interfaces import IAnnotations
-from plone.restapi.interfaces import IJsonCompatible
 
 from App.config import getConfiguration
 from collective.exportimport import _
@@ -10,14 +12,19 @@ from collective.exportimport import config
 from collective.exportimport.interfaces import IBase64BlobsMarker
 from collective.exportimport.interfaces import IMigrationMarker
 from collective.exportimport.interfaces import IPathBlobsMarker
-from collective.exportimport.interfaces import IRawRichTextMarker
 from operator import itemgetter
 from plone import api
 from plone.app.layout.viewlets.content import ContentHistoryViewlet
 from plone.i18n.normalizer.interfaces import IIDNormalizer
 from plone.restapi.interfaces import ISerializeToJson
 from plone.restapi.serializer.converters import json_compatible
+from plone.restapi.serializer.dxcontent import SerializeFolderToJson
+from plone.restapi.serializer.dxcontent import SerializeToJson
 from plone.uuid.interfaces import IUUID
+from DateTime.DateTime import DateTime
+from zope.proxy import ProxyBase
+from zope.proxy import getProxiedObject
+from Products.CMFPlone.interfaces import IPloneSiteRoot
 from Products.CMFPlone.interfaces.constrains import ENABLED
 from Products.CMFPlone.interfaces.constrains import ISelectableConstrainTypes
 from Products.CMFPlone.utils import safe_unicode
@@ -37,9 +44,57 @@ import pkg_resources
 import six
 import tempfile
 
-import logging
-
 logger = logging.getLogger(__name__)
+
+COLLECTION_METADATA_FIELDS = (
+    "query",
+    "sort_on",
+    "sort_reversed",
+    "item_count",
+    "customViewFields",
+    "limit",
+    "batch_size",
+    "title",
+    "description",
+)
+
+
+class _ExportDateProxy(ProxyBase):
+    """Read-only proxy: export-only workaround for migration4to5 artifacts."""
+
+    def created(self):
+        target = getProxiedObject(self)
+        created = target.__dict__.get("created")
+        if created is not None and not callable(created):
+            return DateTime(created)
+        return target.created()
+
+    def modified(self):
+        target = getProxiedObject(self)
+        modified = target.__dict__.get("modified")
+        if modified is not None and not callable(modified):
+            return DateTime(modified)
+        return target.modified()
+
+
+def _needs_created_fixup(obj):
+    if obj.portal_type != "ulearn.community":
+        return False
+    created = getattr(obj, "created", None)
+    return created is not None and not callable(created)
+
+
+def _serialize_legacy_collection(obj, request):
+    """Export Collection metadata without calling results()."""
+    item = SerializeToJson(obj, request)()
+    for name in COLLECTION_METADATA_FIELDS:
+        if hasattr(obj, name):
+            value = getattr(obj, name)
+            if value is not None:
+                item[name] = json_compatible(value)
+    item.setdefault("items", [])
+    item["items_total"] = 0
+    return item
 
 TYPES_TO_EXPORT = [
     "Folder",
@@ -332,6 +387,76 @@ class CustomExportContent(ExportContent):
         Good: Return None if you want to skip this particular object.
         """
         return obj
+
+    def serialize_object(self, obj):
+        if _needs_created_fixup(obj):
+            proxy = _ExportDateProxy(obj)
+            return SerializeFolderToJson(proxy, self.request)(
+                include_items=False
+            )
+
+        serializer = getMultiAdapter((obj, self.request), ISerializeToJson)
+        if IPloneSiteRoot.providedBy(obj):
+            return serializer()
+        if getattr(aq_base(obj), "isPrincipiaFolderish", False):
+            return serializer(include_items=False)
+        try:
+            return serializer()
+        except TypeError:
+            if obj.portal_type not in ("Collection", "Topic"):
+                raise
+            logger.warning(
+                "Legacy collection export fallback for %s",
+                obj.absolute_url(),
+            )
+            return _serialize_legacy_collection(obj, self.request)
+
+    def export_content(self):
+        query = self.build_query()
+        catalog = api.portal.get_tool("portal_catalog")
+        brains = catalog.unrestrictedSearchResults(**query)
+        logger.info(u"Exporting {} {}".format(len(brains), self.portal_type))
+
+        alsoProvides(self.request, IRawRichTextMarker)
+
+        for index, brain in enumerate(brains, start=1):
+            skip = False
+            if brain.UID in self.DROP_UIDS:
+                continue
+
+            for drop in self.DROP_PATHS:
+                if drop in brain.getPath():
+                    skip = True
+
+            if skip:
+                continue
+
+            if not index % 100:
+                logger.info(u"Handled {} items...".format(index))
+            try:
+                obj = brain.getObject()
+            except Exception:
+                msg = u"Error getting brain {}".format(brain.getPath())
+                self.errors.append({'path': None, 'message': msg})
+                logger.exception(msg, exc_info=True)
+                continue
+            if obj is None:
+                msg = u"brain.getObject() is None {}".format(brain.getPath())
+                logger.error(msg)
+                self.errors.append({'path': None, 'message': msg})
+                continue
+            obj = self.global_obj_hook(obj)
+            if not obj:
+                continue
+            try:
+                self.safe_portal_type = fix_portal_type(obj.portal_type)
+                item = self.serialize_object(obj)
+                item = self.update_export_data(item, obj)
+                yield item
+            except Exception:
+                msg = u"Error exporting {}".format(obj.absolute_url())
+                self.errors.append({'path': obj.absolute_url(), 'message': msg})
+                logger.exception(msg, exc_info=True)
 
     def global_dict_hook(self, item, obj):
         """Used this to modify the serialized data.
