@@ -22,8 +22,7 @@ from plone.restapi.serializer.dxcontent import SerializeFolderToJson
 from plone.restapi.serializer.dxcontent import SerializeToJson
 from plone.uuid.interfaces import IUUID
 from DateTime.DateTime import DateTime
-from zope.proxy import ProxyBase
-from zope.proxy import getProxiedObject
+from zope.interface import providedBy
 from Products.CMFPlone.interfaces import IPloneSiteRoot
 from Products.CMFPlone.interfaces.constrains import ENABLED
 from Products.CMFPlone.interfaces.constrains import ISelectableConstrainTypes
@@ -59,22 +58,39 @@ COLLECTION_METADATA_FIELDS = (
 )
 
 
-class _ExportDateProxy(ProxyBase):
-    """Read-only proxy: export-only workaround for migration4to5 artifacts."""
+class _ExportDateProxy(object):
+    """Read-only export wrapper for migration4to5 date artifacts.
+
+    ProxyBase is not usable here: it forwards the broken ``created`` string
+    before our method can run.
+    """
+
+    def __init__(self, obj):
+        self._obj = obj
 
     def created(self):
-        target = getProxiedObject(self)
-        created = target.__dict__.get("created")
+        created = self._obj.__dict__.get("created")
         if created is not None and not callable(created):
             return DateTime(created)
-        return target.created()
+        creation_date = getattr(self._obj, "CreationDate", None)
+        if creation_date:
+            return DateTime(creation_date)
+        return self._obj.created()
 
     def modified(self):
-        target = getProxiedObject(self)
-        modified = target.__dict__.get("modified")
+        modified = self._obj.__dict__.get("modified")
         if modified is not None and not callable(modified):
             return DateTime(modified)
-        return target.modified()
+        modification_date = getattr(self._obj, "ModificationDate", None)
+        if modification_date:
+            return DateTime(modification_date)
+        return self._obj.modified()
+
+    def __providedBy__(self):
+        return providedBy(self._obj)
+
+    def __getattr__(self, name):
+        return getattr(self._obj, name)
 
 
 def _needs_created_fixup(obj):
