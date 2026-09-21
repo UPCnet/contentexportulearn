@@ -105,6 +105,7 @@ def _serialize_legacy_collection(obj, request):
     item["items_total"] = 0
     return item
 
+
 TYPES_TO_EXPORT = [
     "Folder",
     "Document",
@@ -135,6 +136,18 @@ TYPES_TO_EXPORT = [
     "ulearn.abacus.area",
     "ulearn.abacus.work_placement",
     "ulearn.affiliate",
+    "CholPeptide",
+    "CholPeptideShipment",
+    "EntrapmentEfficiencyDeterminationTechnique",
+    "GLA",
+    "GLAShipment",
+    "Ingredient",
+    "InnactiveIngredient",
+    "Nanoformula",
+    "NanoformulaShipment",
+    "Operator",
+    "ReactorReference",
+    "ResearchGroup",
 ]
 
 PATH = ''
@@ -481,20 +494,20 @@ class CustomExportContent(ExportContent):
     def export_annotations(self, item, obj):
         results = {}
         try:
-           annotations = IAnnotations(obj)
+            annotations = IAnnotations(obj)
         except TypeError:
-           annotations = None
+            annotations = None
 
         if annotations:
 
-           for key in ANNOTATIONS_TO_EXPORT:
-               data = annotations.get(key)
-               if data:
-                   # Lo comento lo del IJsonCompatible porque sino
-                   # i18n_message_converter plone.restapi.serializer.converter.py lo traduce y no funciona
-                   # results[key] = IJsonCompatible(data, None)
-                   results[key] = data
-           if results:
-               item[ANNOTATIONS_KEY] = results
+            for key in ANNOTATIONS_TO_EXPORT:
+                data = annotations.get(key)
+                if data:
+                    # Lo comento lo del IJsonCompatible porque sino
+                    # i18n_message_converter plone.restapi.serializer.converter.py lo traduce y no funciona
+                    # results[key] = IJsonCompatible(data, None)
+                    results[key] = data
+            if results:
+                item[ANNOTATIONS_KEY] = results
 
         return item
