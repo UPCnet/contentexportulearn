@@ -50,6 +50,7 @@ class ExportAll(BrowserView):
             "export_settings",
             "export_controlpanels",
             "export_portalrolemanager",
+            "export_user_catalog",
         ]
 
         for export_name in other_exports:
