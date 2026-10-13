@@ -450,7 +450,7 @@ class CustomExportContent(ExportContent):
             if skip:
                 continue
 
-            if not index % 100:
+            if not index % 50:
                 logger.info(u"Handled {} items...".format(index))
             try:
                 obj = brain.getObject()
@@ -487,6 +487,10 @@ class CustomExportContent(ExportContent):
             item.update({'acl': acl})
             creators = obj.creators
             item.update({'creators': creators})
+            # Favorites are a plain attribute (base5.core.adapters.favorites),
+            # not an annotation, so they are not exported otherwise.
+            favorited_by = getattr(aq_base(obj), '_favoritedBy', None) or []
+            item.update({'favoritedBy': sorted(favorited_by)})
 
         item = self.export_annotations(item, obj)
         return item
