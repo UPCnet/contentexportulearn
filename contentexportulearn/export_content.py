@@ -148,6 +148,10 @@ TYPES_TO_EXPORT = [
     "Operator",
     "ReactorReference",
     "ResearchGroup",
+    "Services",
+    "Flash_informativo",
+    "Link_Communities",
+    "Event_Communities",
 ]
 
 PATH = ''

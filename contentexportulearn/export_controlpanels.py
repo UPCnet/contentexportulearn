@@ -14,6 +14,10 @@ from ulearn5.core.controlpopup import IPopupSettings
 from ulearn5.core.controlportlets import IPortletsSettings
 from Products.CMFPlone.interfaces import ISiteSchema
 
+try:
+    from ulearn5.blanquerna.controlpanel import IBlanquernaSettings
+except ImportError:
+    IBlanquernaSettings = None
 
 import base64
 import requests
@@ -162,6 +166,15 @@ class ExportControlpanels(BaseExport):
             ulearn_portlets_banners=portlets_settings.ulearn_portlets_banners,
             ulearn_portlets_quicklinks=portlets_settings.ulearn_portlets_quicklinks,
             ulearn_portlets_mycommunities=portlets_settings.ulearn_portlets_mycommunities)
+        # Blanquerna settings-controlpanel (only if ulearn5.blanquerna is installed)
+        if IBlanquernaSettings is not None:
+            blanquerna_settings = getUtility(IRegistry).forInterface(
+                IBlanquernaSettings, check=False)
+            controlpanel["ulearn5.blanquerna.controlpanel.IBlanquernaSettings"] = dict(
+                api_url=blanquerna_settings.api_url,
+                api_username=blanquerna_settings.api_username,
+                api_password=blanquerna_settings.api_password,
+                user_demo=blanquerna_settings.user_demo)
         controlpanel["plone.app.controlpanel.mail.IMailSchema"] = dict(
             smtp_host=getattr(portal.MailHost, 'smtp_host', ''),
             smtp_port=int(getattr(portal.MailHost, 'smtp_port', 25)),
