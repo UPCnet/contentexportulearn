@@ -37,14 +37,16 @@ class ExportUserCatalog(BaseExport):
             userid = str(record.attrs.get("id", "") or "")
             if not userid:
                 continue
+            # Keys can be i18n Messages (msgid = property id); json_compatible
+            # would translate them to localized titles and merge collisions
+            # (phone / office_phone), so force them to plain text ids and
+            # only convert the values.
             properties = dict(
-                (key, value)
+                (u"%s" % key, json_compatible(value))
                 for key, value in record.attrs.items()
                 if key not in SOUP_SKIPPED_KEYS
             )
-            result.append(
-                json_compatible({"id": userid, "properties": properties})
-            )
+            result.append({"id": userid, "properties": properties})
             if not number % 1000:
                 logger.info("Exported %s user catalog records...", number)
         logger.info("Exported %s user catalog records from soup", len(result))
