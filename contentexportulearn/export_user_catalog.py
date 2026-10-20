@@ -12,6 +12,11 @@ from itertools import chain
 
 logger = logging.getLogger(__name__)
 
+# Sites with thousands of LDAP users: the soup already holds every profile
+# property, so skip the per-user PAS/LDAP lookups.
+SOUP_ONLY_ADDONS = "ulearn5.blanquerna"
+SOUP_SKIPPED_KEYS = ("id", "username")
+
 
 class ExportUserCatalog(BaseExport):
     """Export user directory data for uShare6 migration (``export_user_catalog.json``)."""
@@ -25,10 +30,33 @@ class ExportUserCatalog(BaseExport):
         data = self.export_user_catalog()
         self.download(data)
 
+    def export_user_catalog_from_soup(self, soup):
+        """Dump the ``user_properties`` soup records without touching LDAP."""
+        result = []
+        for number, record in enumerate(soup.data.values(), start=1):
+            userid = str(record.attrs.get("id", "") or "")
+            if not userid:
+                continue
+            properties = dict(
+                (key, value)
+                for key, value in record.attrs.items()
+                if key not in SOUP_SKIPPED_KEYS
+            )
+            result.append(
+                json_compatible({"id": userid, "properties": properties})
+            )
+            if not number % 1000:
+                logger.info("Exported %s user catalog records...", number)
+        logger.info("Exported %s user catalog records from soup", len(result))
+        return result
+
     def export_user_catalog(self):
         """Same shape as ``GET /api/userspropertiesmigrationsoup``."""
         portal = api.portal.get()
         soup = get_soup("user_properties", portal)
+        qi = api.portal.get_tool("portal_quickinstaller")
+        if qi.isProductInstalled(SOUP_ONLY_ADDONS):
+            return self.export_user_catalog_from_soup(soup)
         result = []
         for record in soup.data.values():
             userid = str(record.attrs.get("id", "") or "")
