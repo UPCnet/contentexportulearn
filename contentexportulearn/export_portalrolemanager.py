@@ -4,6 +4,7 @@ import logging
 from collective.exportimport.export_other import BaseExport
 from plone import api
 from plone.restapi.serializer.converters import json_compatible
+from Products.PluggableAuthService.plugins.ZODBRoleManager import MultiplePrincipalError
 import json
 
 
@@ -30,7 +31,18 @@ class ExportPortalRoleManager(BaseExport):
         results = {}
         result = []
         for role in roles:
-            users_assigned = role_manager.listAssignedPrincipals(role['id'])
+            try:
+                users_assigned = role_manager.listAssignedPrincipals(role['id'])
+            except MultiplePrincipalError:
+                # A user and a group share an id (e.g. 'Administrators'), so
+                # listAssignedPrincipals aborts. Read the raw assignments.
+                logger.warning(
+                    'Duplicate principal assigned to role %s, '
+                    'exporting raw ids', role['id'])
+                users_assigned = [
+                    (principal_id, principal_id)
+                    for principal_id, roles in role_manager._principal_roles.items()
+                    if role['id'] in roles]
             try:
                 info_role_manager = dict(role_id=role['id'],
                                          users_assigned=users_assigned
