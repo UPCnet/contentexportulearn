@@ -12,4 +12,11 @@
         replacement=".patches.download"
         />
 
+    <monkey:patch
+        description="Portlets con imagen/fichero (NamedBlobImage) exportables a JSON"
+        module="collective.exportimport.export_other"
+        original="json_compatible"
+        replacement=".patches.json_compatible"
+        />
+
 </configure>

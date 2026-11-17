@@ -4,12 +4,34 @@ from App.config import getConfiguration
 from collective.exportimport import _
 from collective.exportimport import config
 from plone import api
+from plone.namedfile.interfaces import INamedFile
+from plone.restapi.serializer.converters import json_compatible as restapi_json_compatible
 
+import base64
 import json
 import logging
 import os
 
 logger = logging.getLogger(__name__)
+
+
+def json_compatible(value, context=None):
+    """json_compatible de plone.restapi + ficheros/imágenes (NamedFile, NamedBlobImage…).
+
+    Sustituye a ``collective.exportimport.export_other.json_compatible``: el export de
+    portlets (``export_local_portlets``) llama a json_compatible con el valor de cada
+    campo y plone.restapi 4.x no tiene conversor para NamedBlobImage → TypeError y
+    @@export_all se cortaba. Formato = el que acepta el IFieldDeserializer de
+    plone.restapi en el import (ushare6).
+    """
+    if INamedFile.providedBy(value):
+        return {
+            u"data": base64.b64encode(value.data).decode("ascii"),
+            u"encoding": u"base64",
+            u"filename": value.filename,
+            u"content-type": value.contentType,
+        }
+    return restapi_json_compatible(value, context)
 
 def download(self, data):
     filename = u"{}.json".format(self.__name__)

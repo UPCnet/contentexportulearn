@@ -2,6 +2,7 @@
 from contentexportulearn.interfaces import IContentexportLayer
 from plone import api
 from Products.Five import BrowserView
+from ZODB.POSException import ConflictError
 from zope.interface import alsoProvides
 
 import logging
@@ -53,12 +54,25 @@ class ExportAll(BrowserView):
             "export_user_catalog",
         ]
 
+        # Un export que falla (p. ej. portlets con datos no serializables) no debe
+        # dejar sin ejecutar los siguientes (settings, portalrolemanager, user_catalog…)
+        failed = []
         for export_name in other_exports:
-            export_view = api.content.get_view(export_name, portal, request)
-            request.form["form.submitted"] = True
-            # store each result in var/instance/export_xxx.json
-            export_view(download_to_server=True)
+            try:
+                export_view = api.content.get_view(export_name, portal, request)
+                request.form["form.submitted"] = True
+                # store each result in var/instance/export_xxx.json
+                export_view(download_to_server=True)
+            except ConflictError:
+                raise
+            except Exception:
+                logger.exception("export_all: ha fallado %s, sigo con el resto", export_name)
+                failed.append(export_name)
 
+        if failed:
+            msg = "export_all terminado con errores en: {}".format(", ".join(failed))
+            logger.error(msg)
+            api.portal.show_message(msg, request, type="error")
         logger.info("Finished export_all")
         # Important! Redirect to prevent infinite export loop :)
         return self.request.response.redirect(self.context.absolute_url())
